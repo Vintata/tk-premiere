@@ -1,0 +1,69 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your 
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Metadata defining the behaviour and requirements for this engine
+
+# expected fields in the configuration file for this engine
+configuration:
+
+    automatic_context_switch:
+      type: bool
+      description: Controls whether an active document change causes a context change.
+      default_value: true
+
+    shelf_favorites:
+        type: list
+        description:
+          Controls the registered commands that show up in the favorites shelf
+          in the Shotgun panel. This is a list where each item is a dictionary
+          with keys 'app_instance' and 'name'. The 'app_instance' key connects
+          this entry to a particular app instance defined in the environment
+          configuration file. The 'name' is a command name to make a favorite.
+        allows_empty: True
+        default_value: []
+        values:
+            type: dict
+            items:
+                name: { type: str }
+                app_instance: { type: str }
+
+    import_footage_hook:
+        type: hook
+        default_value: "{self}/import_footage.py"
+        description:
+          Hook which controls how footage is imported into the current project.
+
+    context_fields_display_hook:
+        type: hook
+        default_value: "{self}/context_fields_display.py"
+        description:
+          Hook which controls how context fields are queried and displayed in
+          the context header.
+
+    debug_logging:
+        type: bool
+        description: Controls whether debug messages should be emitted to the logger
+        default_value: true
+
+
+# the Shotgun fields that this engine needs in order to operate correctly
+requires_shotgun_fields:
+
+# More verbose description of this item 
+display_name: "Shotgun Engine for After Effects CC"
+description: "Shotgun Integration for After Effects CC"
+
+# Required minimum versions for this item to run
+requires_shotgun_version:
+requires_core_version:
+
+frameworks:
+  - {"name": "tk-framework-shotgunutils", "version": "v5.x.x"}
+  - {"name": "tk-framework-adobe", "version": "v1.x.x"}

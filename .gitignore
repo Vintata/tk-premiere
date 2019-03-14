@@ -1,0 +1,18 @@
+*.py[co]
+
+# OS X temporary files that should never be committed
+.DS_Store
+*.swp
+*.lock
+profile
+Thumbs.db
+build/*
+Makefile
+make.bat
+
+# Vim
+*.swp
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
