@@ -62,7 +62,7 @@ description: "Shotgun Integration for After Effects CC"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
-requires_core_version:
+requires_core_version: "v0.18.164"
 
 frameworks:
   - {"name": "tk-framework-shotgunutils", "version": "v5.x.x"}
