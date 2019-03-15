@@ -314,6 +314,7 @@ class AfterEffectsCopyRenderPlugin(HookBaseClass):
 
         # check output module configuration
         om_state = self.__output_modules_acceptable(
+            item,
             queue_item,
             default_mov_output_module,
             default_seq_output_module,
@@ -379,10 +380,10 @@ class AfterEffectsCopyRenderPlugin(HookBaseClass):
             _, path_ext = os.path.splitext(each_path)
 
             if path_ext != template_ext:
-                self.logger.warn(("Configuration Error: The template extension {} is not matching"
+                self.logger.error(("Configuration Error: The template extension {} is not matching"
                                   "the render output path extension {} for "
                                   "path {!r}").format(template_ext, path_ext, each_path))
-                return self.REJECTED
+                return self.PARTIALLY_ACCEPTED
         return self.FULLY_ACCEPTED
 
     def __templates_acceptable(
@@ -423,7 +424,7 @@ class AfterEffectsCopyRenderPlugin(HookBaseClass):
         return self.FULLY_ACCEPTED
 
     def __output_modules_acceptable(
-            self, queue_item, mov_template,
+            self, publish_item, queue_item, mov_template,
             seq_template, check=True, force=True):
         """
         Helper that verifies, that all the output modules are configured correctly.
@@ -432,6 +433,7 @@ class AfterEffectsCopyRenderPlugin(HookBaseClass):
         In case force is not set verification will fail if the latter check fails, if
         force is set, the output-module will be set to the configured template.
 
+        :param publish_item: the current publisher item
         :param queue_item: an after effects render-queue-item
         :param mov_template: str name of the output module template for movie-clips
         :param seq_template: str name of the output module template for image-sequences
@@ -483,8 +485,17 @@ class AfterEffectsCopyRenderPlugin(HookBaseClass):
             # if the fix output module is configured, we can apply the fix
             # and continue
 
-            def fix_output_module(om=output_module, t=template_name):
-                om.applyTemplate(t)
+            def fix_output_module(
+                    output_module=output_module, template=template_name, queue_item=queue_item,
+                    item=publish_item, engine=self.parent.engine):
+                """
+                local method to change the output module template of the item and update the renderpaths
+                """
+                output_module.applyTemplate(template)
+                renderpaths = []
+                for output_module in engine.iter_collection(queue_item.outputModules):
+                    renderpaths.append(output_module.file.fsName)
+                item.properties["renderpaths"] = renderpaths
 
             if force and queue_item.status not in acceptable_states:
                 self.logger.info("Forcing Output Module to follow template {!r}".format(template_name))

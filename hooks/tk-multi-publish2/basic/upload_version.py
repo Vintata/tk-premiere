@@ -358,6 +358,9 @@ class AfterEffectsUploadVersionPlugin(HookBaseClass):
             new_item.frameRate or 25
         )
 
+        for new_item in new_items:
+            new_cmp_item.layers.add(new_item)
+
         temp_item = self.parent.engine.adobe.app.project.renderQueue.items.add(new_cmp_item)
         output_path = self.__render_to_temp_location(temp_item, mov_output_module_template)
 
