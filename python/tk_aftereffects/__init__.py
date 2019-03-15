@@ -43,15 +43,15 @@ class AdobeItemTypes:
     adobe aftereffects internal class names within python
     """
 
-    #: :obj:`str` :
-    #: the adobe.CompItem's internal typename
+    #: :obj:`str`
+    #: The adobe.CompItem's internal typename
     COMP_ITEM = "CompItem"
 
-    #: :obj:`str` :
-    #: the adobe.FolderItem's internal typename
+    #: :obj:`str`
+    #: The adobe.FolderItem's internal typename
     FOLDER_ITEM = "FolderItem"
 
-    #: :obj:`str` :
-    #: the adobe.FootageItem's internal typename
+    #: :obj:`str`
+    #: The adobe.FootageItem's internal typename
     FOOTAGE_ITEM = "FootageItem"
 

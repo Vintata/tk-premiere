@@ -56,8 +56,8 @@ You can find the console by selecting the *burger-menu* of the panel and then cl
 
 If you didn't get enough information yet, you may now also check the log-file on Disk:
 
- * On Windows: %appdata%\Shotgun\Logs\tk-adobecc.log
- * On Mac:     ~/Library/Logs/Shotgun/tk-adobecc.log
+ * On Windows: ``%appdata%\Shotgun\Logs\tk-adobecc.log``
+ * On Mac: ``~/Library/Logs/Shotgun/tk-adobecc.log``
 
 
 If you still couldn't find the reason please view the debug logs of the panel itself, which will be available under:
@@ -76,8 +76,8 @@ Environment Variables
 
 You may use the following environment variables to influence the behaviour of the After Effects Engine:
 
- - `SHOTGUN_ADOBE_NETWORK_DEBUG` - If this exists you will get more debug information in the console.
- - `SHOTGUN_ADOBE_TESTS_ROOT` - If you set this variable to the absolute directory-path of the "tests" folder of your tk-aftereffects directory you can run the integration tests as described below.
+ - ``SHOTGUN_ADOBE_NETWORK_DEBUG`` - If this exists you will get more debug information in the console.
+ - ``SHOTGUN_ADOBE_TESTS_ROOT`` - If you set this variable to the absolute directory-path of the "tests" folder of your tk-aftereffects directory you can run the integration tests as described below.
 
 
 Running integration tests

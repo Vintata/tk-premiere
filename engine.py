@@ -2,10 +2,10 @@
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
@@ -27,7 +27,7 @@ from sgtk.util.filesystem import ensure_folder_exists
 
 class AfterEffectsEngine(sgtk.platform.Engine):
     """
-    A After Effects CC engine for Shotgun Toolkit.
+    An After Effects CC engine for Shotgun Toolkit.
     """
 
     # the maximum size for a generated thumbnail
@@ -159,7 +159,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         self.adobe.state_requested.connect(self.__send_state)
 
         # in order to use frameworks, they have to be imported via
-        # import_module. so they're exposed in the bundled python. 
+        # import_module. so they're exposed in the bundled python.
         shotgun_data = self.__tk_aftereffects.shotgun_data
         settings = self.__tk_aftereffects.shotgun_settings
         # keep a handle for shotgun globals as they are needed in other
@@ -407,7 +407,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         :param item: item to be checked.
         :type item: `adobe.ItemObject`_
         :param str adobe_type: AdobeItemType-constant. One of the constants held by :class:`~python.tk_aftereffects.AdobeItemTypes`
-        :returns: Indicating if the given item is of the given type 
+        :returns: Indicating if the given item is of the given type
         :rtype: bool
         """
         return item.data.get("instanceof", "") == adobe_type
@@ -463,7 +463,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         """
         Helper to iter safely through an adobe-collection item
         as its index starts at 1, not 0.
-        
+
         One may use this method like this::
 
             item_collection = engine.adobe.project.items
@@ -550,7 +550,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         recurse into the folders until one ItemObject was found.
 
         :param item_collection: object to be analyzed
-        :type item_collection: `adobe.ItemCollectionObject`_ 
+        :type item_collection: `adobe.ItemCollectionObject`_
         :param comp_item: comp that should receive the items from item_collection
         :type comp_item: `adobe.CompItemObject`_
         :returns: Indicating if an item was added or not.
@@ -603,7 +603,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         # save the queue state for all unrendered items
         queue_item_state_cache = [(queue_item, queue_item.render)]
         for item in self.iter_collection(self.adobe.app.project.renderQueue.items):
-            # one cannot change the status on 
+            # one cannot change the status on
             if item.status != self.adobe.RQItemStatus.QUEUED:
                 continue
             queue_item_state_cache.append((item, item.render))
@@ -646,8 +646,8 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         frame number of a sequence. This assumes some sort of common convention
         for the file names, where the frame number is an integer at the end of
         the basename, just ahead of the file extension, such as
-        file.0001.jpg, or file_001.jpg. We also check for input file names with
-        abstracted frame number tokens, such as file.####.jpg, or file.%04d.jpg.
+        ``file.0001.jpg``, or ``file_001.jpg``. We also check for input file names with
+        abstracted frame number tokens, such as ``file.####.jpg`` or ``file.%04d.jpg``.
 
         :param str path: The file path to parse.
 
@@ -1253,7 +1253,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
             self.__tk_aftereffects.win_32_api.SetWindowLong(
                 proxy_win_hwnd,
-                self.__tk_aftereffects.win_32_api.GWL_EXSTYLE, 
+                self.__tk_aftereffects.win_32_api.GWL_EXSTYLE,
                 win_ex_style | self.__tk_aftereffects.win_32_api.WS_EX_NOPARENTNOTIFY,
             )
             self.__tk_aftereffects.win_32_api.SetParent(proxy_win_hwnd, ps_hwnd)
