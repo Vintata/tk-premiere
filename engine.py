@@ -62,6 +62,9 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     _HEARTBEAT_DISABLED = False
     _PROJECT_CONTEXT = None
     _AFX_PID = None
+    _POPUP_CACHE = None
+    _AFX_WIN32_DIALOG_WINDOW_CLASS = "#32770" # the windows window class name used by After Effects for modal dialogs
+    __WIN32_GW_CHILD = 5
     _CONTEXT_CACHE_KEY = "aftereffects_context_cache"
 
     _HAS_CHECKED_CONTEXT_POST_LAUNCH = False
@@ -1135,26 +1138,70 @@ class AfterEffectsEngine(sgtk.platform.Engine):
             TODO: Implement an equivalent method on mac
         """
         if sys.platform == "win32":
+
+            # to get all dialogs from After Effects, we have to query the
+            # After Effects process id first. As this code runs inside a
+            # separate python process, we use a subprocess for this.
             if self._AFX_PID == -1:
                 return
             elif self._AFX_PID is None:
-                s = subprocess.Popen(
+                # the windows tasklist command will provide the process id
+                # of the After Effects executable. As there is always only one
+                # instance of After Effects, this should be safe to determine the
+                # process id.
+                pid_query_process = subprocess.Popen(
                     ['tasklist', '/FI', 'ImageName eq AfterFX.exe', '/FO', 'CSV', '/NH'],
                     stdout=subprocess.PIPE
                 )
-                out_string, _ = s.communicate()
+                out_string, _ = pid_query_process.communicate()
+
+                # The out_string will look like:
+                # "AfterFX.ext","1234","SessionName","SessionNum","MemoryUsage"
+                # where 1234 describes the pid of After Effects
                 match = re.match("[^0-9]+([0-9]+).*", out_string, re.DOTALL)
                 if not match:
                     self._AFX_PID = -1
                 self._AFX_PID = int(match.group(1))
 
-            hwnd = self.__tk_aftereffects.win_32_api.find_windows(
+            # with the process id of After Effects, we can get all HWNDS that point to
+            # dialog classes.
+            hwnds = self.__tk_aftereffects.win_32_api.find_windows(
                                 process_id=self._AFX_PID,
-                                class_name="#32770",
+                                class_name=self._AFX_WIN32_DIALOG_WINDOW_CLASS,
                                 stop_if_found=True,
                             )
-            if hwnd:
-                self.__tk_aftereffects.win_32_api.bring_to_front(hwnd[0])
+
+            # To avoid raising a dialog, that we raised before,
+            # we will compare the list of visible dialog-hwnds with the list
+            # that we already raised.
+            # As we cannot compare the hwnd-pointers directly, we need to compare
+            # the integer value (hwnd long) of the hwnd pointers.
+
+            # we build a dict that maps the hwnd longs to the current hwnd pointer
+            all_hwnds = {}
+            GetWindow = self.__tk_aftereffects.win_32_api.ctypes.windll.user32.GetWindow
+            for hwnd in hwnds:
+                # GetWindow with GW_CHILD is used to get the hwnd long that identifies the child window
+                # at the top of the Z order, of the specified parent window pointer.
+                all_hwnds[GetWindow(hwnd, self.__WIN32_GW_CHILD)] = hwnd
+
+            # by comparing the cached hwnd longs with the current list of hwnd longs,
+            # we find out which hwnds are actually pointing to new (unraised) dialogs.
+            new_hwnds = set(all_hwnds.keys()) - (self._POPUP_CACHE or set([]))
+
+            # in case there is a new dialog, we bring it to front and update the cache
+            for hwnd_long in new_hwnds:
+                self.__tk_aftereffects.win_32_api.bring_to_front(all_hwnds[hwnd_long])
+                self._POPUP_CACHE = set(all_hwnds.keys())
+                return
+
+            # in case there are open dialogs, but we already raised them,
+            # we do nothing.
+            if all_hwnds:
+
+                return
+            # In case there is no open dialog, we will reset the cache to None
+            self._POPUP_CACHE = None
 
     def _win32_get_aftereffects_main_hwnd(self):
         """
