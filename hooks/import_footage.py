@@ -27,7 +27,7 @@ class ImportFootage(HookBaseClass):
     def __get_import_type(self, import_options):
         """
         Helper to determine, what import type the given import candidate
-        needs. Assuming an *.aep file was given this method will return a
+        needs. Assuming an *.prproj file was given this method will return a
         PROJECT, whereas if an *.jpg was given it will return FOOTAGE
 
         Note::
@@ -49,9 +49,9 @@ class ImportFootage(HookBaseClass):
         # Note: this order is important as we skip as soon as we can
         #       import a piece of footage in a certain way
         import_types = [
-            self.adobe.ImportAsType.PROJECT,  # aep
-            self.adobe.ImportAsType.COMP,  # psd, aep
-            self.adobe.ImportAsType.COMP_CROPPED_LAYERS,  # aep, psd fallback
+            self.adobe.ImportAsType.PROJECT,  # prproj
+            self.adobe.ImportAsType.COMP,  # psd, prproj
+            self.adobe.ImportAsType.COMP_CROPPED_LAYERS,  # prproj, psd fallback
             self.adobe.ImportAsType.FOOTAGE,  # jpg
         ]
 
@@ -71,7 +71,7 @@ class ImportFootage(HookBaseClass):
 
         The filepath can be accesssed by doing ``import_options.file.fsName``.
 
-        :param import_options: The import options as set by After Effects
+        :param import_options: The import options as set by Premiere
         :type import_options: `adobe.ImportOptionsObject`_.
         """
         self.adobe = self.parent.adobe

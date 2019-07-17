@@ -18,7 +18,7 @@ import sgtk
 from . import TestAdobeRPC
 
 
-class TestAfterEffectsRPC(TestAdobeRPC):
+class TestPremiereRPC(TestAdobeRPC):
     document = None
 
     @classmethod
@@ -26,7 +26,7 @@ class TestAfterEffectsRPC(TestAdobeRPC):
         TestAdobeRPC.setUpClass()
 
     def setUp(self):
-        self.project_path = os.path.join(self.resources, "simpleproject.aep")
+        self.project_path = os.path.join(self.resources, "simpleproject.prproj")
         self.engine = sgtk.platform.current_engine()
         self.project = self.engine.adobe.File(self.project_path)
         self.engine.adobe.app.open(self.project)
@@ -51,7 +51,7 @@ class TestAfterEffectsRPC(TestAdobeRPC):
         """
         Tests if the method save_to_path actually saves the file to the given location
         """
-        temp_file = tempfile.NamedTemporaryFile(suffix='.aep')
+        temp_file = tempfile.NamedTemporaryFile(suffix='.prproj')
         temp_file.close()
 
         self.engine.save(temp_file.name)

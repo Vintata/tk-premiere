@@ -56,26 +56,22 @@ class SceneOperation(HookClass):
         adobe = self.parent.engine.adobe
 
         if operation == "current_path":
-            file_obj = adobe.app.project.file
-            if file_obj != None:
-                return file_obj.fsName
-            return ''
+            return adobe.app.project.path
 
         elif operation == "open":
-            # open the specified script
-            adobe.app.open(adobe.File(file_path))
+            adobe.app.openDocument(file_path)
 
         elif operation == "save":
             adobe.app.project.save()
 
         elif operation == "save_as":
-            adobe.app.project.save(adobe.File(file_path))
+            adobe.app.project.saveAs(file_path)
 
         elif operation == "reset":
-            adobe.app.project.close(adobe.CloseOptions.DO_NOT_SAVE_CHANGES)
-            adobe.app.newProject()
+            adobe.app.project.closeDocument(0, 0)
             return True
 
         elif operation == "prepare_new":
-            adobe.app.newProject()
+            # adobe.app.newProject()
+            pass
 

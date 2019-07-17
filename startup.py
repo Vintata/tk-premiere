@@ -20,11 +20,11 @@ class EngineConfigurationError(sgtk.TankError):
     pass
 
 
-class AfterEffectsLauncher(SoftwareLauncher):
+class PremiereLauncher(SoftwareLauncher):
     """
-    Handles the launching of After Effects. Contains the logic for
+    Handles the launching of Premiere. Contains the logic for
     scanning for installed versions of the software and
-    how to correctly set up a launch environment for the tk-aftereffects
+    how to correctly set up a launch environment for the tk-premiere
     engine.
     """
 
@@ -44,10 +44,8 @@ class AfterEffectsLauncher(SoftwareLauncher):
     # install path on a given OS for a new release, a new template will need
     # to be added here.
     EXECUTABLE_MATCH_TEMPLATES = {
-        # /Applications/Adobe After Effects CC 2017/After Effects CC 2017.app
-        "darwin": "/Applications/Adobe After Effects CC {version}/Adobe After Effects CC {version_back}.app",
-        # C:\program files\Adobe\Adobe After Effects CC 2017\AfterFX.exe
-        "win32": "C:/Program Files/Adobe/Adobe After Effects CC {version}/Support Files/AfterFX.exe"
+        "darwin": "/Applications/Adobe Premiere Pro CC {version}/Adobe Premiere Pro CC {version_back}.app",
+        "win32": "C:/Program Files/Adobe/Adobe Premiere Pro CC {version}/Adobe Premiere Pro.exe"
     }
 
     @property
@@ -55,11 +53,11 @@ class AfterEffectsLauncher(SoftwareLauncher):
         """
         The minimum software version that is supported by the launcher.
         """
-        return "2015.5"
+        return "2017"
 
     def prepare_launch(self, exec_path, args, file_to_open=None):
         """
-        Prepares an environment to launch After Effects so that will automatically
+        Prepares an environment to launch Premiere so that will automatically
         load Toolkit after startup.
 
         :param str exec_path: Path to Maya executable to launch.
@@ -79,12 +77,12 @@ class AfterEffectsLauncher(SoftwareLauncher):
 
     def scan_software(self):
         """
-        Scan the filesystem for all After Effects executables.
+        Scan the filesystem for all Premiere executables.
 
         :return: A list of :class:`SoftwareVersion` objects.
         """
 
-        self.logger.debug("Scanning for After Effects executables...")
+        self.logger.debug("Scanning for Premiere executables...")
 
         # use the bundled icon
         icon_path = os.path.join(
@@ -94,7 +92,7 @@ class AfterEffectsLauncher(SoftwareLauncher):
         self.logger.debug("Using icon path: %s" % (icon_path,))
 
         if sys.platform not in self.EXECUTABLE_MATCH_TEMPLATES:
-            self.logger.debug("After Effects not supported on this platform.")
+            self.logger.debug("Premiere not supported on this platform.")
             return []
 
         all_sw_versions = []
@@ -113,7 +111,7 @@ class AfterEffectsLauncher(SoftwareLauncher):
 
             sw_version = SoftwareVersion(
                 executable_version,
-                "After Effects CC",
+                "Premiere CC",
                 executable_path,
                 icon_path
             )
@@ -127,10 +125,10 @@ class AfterEffectsLauncher(SoftwareLauncher):
 
     def compute_environment(self):
         """
-        Return the env vars needed to launch the After Effects plugin.
+        Return the env vars needed to launch the Premiere plugin.
 
         This will generate a dictionary of environment variables
-        needed in order to launch the After Effects plugin.
+        needed in order to launch the Premiere plugin.
 
         :returns: dictionary of env var string key/value pairs.
         """
@@ -149,7 +147,7 @@ class AfterEffectsLauncher(SoftwareLauncher):
         # set the interpreter with which to launch the CC integration
         env["SHOTGUN_ADOBE_PYTHON"] = sys.executable
         env["SHOTGUN_ADOBE_FRAMEWORK_LOCATION"] = framework_location
-        env["SHOTGUN_ENGINE"] = "tk-aftereffects"
+        env["SHOTGUN_ENGINE"] = "tk-premiere"
 
         # We're going to append all of this Python process's sys.path to the
         # PYTHONPATH environment variable. This will ensure that we have access
@@ -186,11 +184,11 @@ class AfterEffectsLauncher(SoftwareLauncher):
         env_name = engine.environment.get("name")
 
         env = engine.tank.pipeline_configuration.get_environment(env_name)
-        engine_desc = env.get_engine_descriptor("tk-aftereffects")
+        engine_desc = env.get_engine_descriptor("tk-premiere")
         if env_name is None:
             self.logger.warn(
                 ("The current environment {!r} "
-                 "is not configured to run the tk-aftereffects "
+                 "is not configured to run the tk-premiere "
                  "engine. Please add the engine to your env-file: "
                  "{!r}").format(env, env.disk_location))
             return
@@ -205,7 +203,7 @@ class AfterEffectsLauncher(SoftwareLauncher):
                 break
         else:
             self.logger.warn(
-                ("The engine tk-aftereffects must have "
+                ("The engine tk-premiere must have "
                  "the tk-framework-adobe configured in order to run"))
             return
 

@@ -16,9 +16,9 @@ import sgtk
 HookBaseClass = sgtk.get_hook_baseclass()
 
 
-class AfterEffectsStartVersionControlPlugin(HookBaseClass):
+class PremiereStartVersionControlPlugin(HookBaseClass):
     """
-    Simple plugin to insert a version number into the After Effects document path if
+    Simple plugin to insert a version number into the Premiere document path if
     one does not exist.
     """
 
@@ -74,7 +74,7 @@ class AfterEffectsStartVersionControlPlugin(HookBaseClass):
         accept() method. Strings can contain glob patters such as *, for example
         ["maya.*", "file.maya"]
         """
-        return ["aftereffects.project"]
+        return ["premiere.project"]
 
     @property
     def settings(self):
@@ -129,7 +129,7 @@ class AfterEffectsStartVersionControlPlugin(HookBaseClass):
             version_number = self._get_version_number(path, item)
             if version_number is not None:
                 self.logger.info(
-                    "After Effects '%s' plugin rejected project" % self.name
+                    "Premiere '%s' plugin rejected project" % self.name
                 )
                 self.logger.info(
                     "  There is already a version number in the file...")
@@ -140,12 +140,12 @@ class AfterEffectsStartVersionControlPlugin(HookBaseClass):
             # provide a save button. the session will need to be saved before
             # validation will succeed.
             self.logger.warn(
-                "After Effects project has not been saved.",
+                "Premiere project has not been saved.",
                 extra=self.__get_save_as_action()
             )
 
         self.logger.info(
-            "After Effects '%s' plugin accepted the project." % self.name,
+            "Premiere '%s' plugin accepted the project." % self.name,
             extra=self.__get_version_docs_action()
         )
 
@@ -176,7 +176,7 @@ class AfterEffectsStartVersionControlPlugin(HookBaseClass):
         if not path:
             # the session still requires saving. provide a save button.
             # validation fails
-            error_msg = "The After Effects project has not been saved."
+            error_msg = "The Premiere project has not been saved."
             self.logger.error(
                 error_msg,
                 extra=self.__get_save_as_action()
@@ -229,8 +229,8 @@ class AfterEffectsStartVersionControlPlugin(HookBaseClass):
         # save to the new version path
         engine.save(version_path)
         self.logger.info(
-            "A version number has been added to the After Effects project...")
-        self.logger.info("  After Effects project path: %s" % (version_path,))
+            "A version number has been added to the Premiere project...")
+        self.logger.info("  Premiere project path: %s" % (version_path,))
 
     def finalize(self, settings, item):
         """

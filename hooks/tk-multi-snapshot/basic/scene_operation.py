@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 from sgtk import Hook
-from sgtk import TankError
 
 
 class SceneOperation(Hook):
@@ -36,14 +35,14 @@ class SceneOperation(Hook):
         adobe = self.parent.engine.adobe
 
         if operation == "current_path":
-            file_obj = adobe.app.project.file
-            if file_obj != None:
-                return file_obj.fsName
-            raise TankError("The active document must be saved!")
+            # FIXME under windows, path has a prefix \\?\
+            if adobe.app.project.path[0:4] == '\\\\?\\':
+                return adobe.app.project.path[4:]
+            return adobe.app.project.path
 
         elif operation == "open":
-            adobe.app.project.close(adobe.CloseOptions.DO_NOT_SAVE_CHANGES)
-            adobe.app.open(adobe.File(file_path))
+            adobe.app.project.closeDocument(0, 0)
+            adobe.app.openDocument(file_path)
 
         elif operation == "save":
             # save the current script

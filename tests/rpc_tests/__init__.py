@@ -11,7 +11,7 @@
 import unittest
 
 from .basic import TestAdobeRPC
-from .aftereffects import TestAfterEffectsRPC
+from .premiere import TestPremiereRPC
 
 
 def get_tests_by_app_id(app_id, adobe):
@@ -20,7 +20,7 @@ def get_tests_by_app_id(app_id, adobe):
     provided.
 
     :param str app_id: The runtime application id string. This will
-                       be something like "AEFT" for After Effects. See constants.js
+                       be something like "PPRO" for Premiere. See constants.js
                        in the CEP extension packaged with this bundle
                        for a full list of supported applications.
     """
@@ -29,7 +29,7 @@ def get_tests_by_app_id(app_id, adobe):
     test_cases = [TestAdobeRPC]
 
     if app_id in ["AEFT"]:
-        test_cases = [TestAfterEffectsRPC]
+        test_cases = [TestPremiereRPC]
 
     for case in test_cases:
         for method in [m for m in dir(case) if m.startswith("test_")]:

@@ -25,16 +25,16 @@ import sgtk
 from sgtk.util.filesystem import ensure_folder_exists
 
 
-class AfterEffectsEngine(sgtk.platform.Engine):
+class PremiereEngine(sgtk.platform.Engine):
     """
-    An After Effects CC engine for Shotgun Toolkit.
+    An Premiere CC engine for Shotgun Toolkit.
     """
 
     # the maximum size for a generated thumbnail
     MAX_THUMB_SIZE = 512
 
     SHOTGUN_ADOBE_HEARTBEAT_INTERVAL = 1.0
-    SHOTGUN_ADOBE_HEARTBEAT_TOLERANCE = 2
+    SHOTGUN_ADOBE_HEARTBEAT_TOLERANCE = 20
     SHOTGUN_ADOBE_NETWORK_DEBUG = ("SHOTGUN_ADOBE_NETWORK_DEBUG" in os.environ)
 
     TEST_SCRIPT_BASENAME = "run_tests.py"
@@ -63,9 +63,9 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     _PROJECT_CONTEXT = None
     _AFX_PID = None
     _POPUP_CACHE = None
-    _AFX_WIN32_DIALOG_WINDOW_CLASS = "#32770" # the windows window class name used by After Effects for modal dialogs
+    _AFX_WIN32_DIALOG_WINDOW_CLASS = "#32770" # the windows window class name used by Premiere for modal dialogs
     __WIN32_GW_CHILD = 5
-    _CONTEXT_CACHE_KEY = "aftereffects_context_cache"
+    _CONTEXT_CACHE_KEY = "premiere_context_cache"
 
     _HAS_CHECKED_CONTEXT_POST_LAUNCH = False
 
@@ -121,7 +121,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         # back up with the same context that it went down with. We have to set
         # this in ExtendScript, because it's the parent process of any CEP and
         # Python processes that get spawned. By setting it at the top, it'll be
-        # propagated down to any of After Effects's subprocesses.
+        # propagated down to any of Premiere's subprocesses.
         if "TANK_CONTEXT" in os.environ:
             self.adobe.dollar.setenv("TANK_CONTEXT", new_context.serialize())
 
@@ -134,7 +134,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         any apps are loaded.
         """
         # import and keep a handle on the bundled python module
-        self.__tk_aftereffects = self.import_module("tk_aftereffects")
+        self.__tk_premiere = self.import_module("tk_premiere")
 
         # constant command uid lookups for these special commands
         self.__jump_to_sg_command_id = self.__get_command_uid()
@@ -142,7 +142,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         # get the adobe instance. it may have been initialized already by a
         # previous instance of the engine. if not, initialize a new one.
-        self._adobe = self.__tk_aftereffects.AdobeBridge.get_or_create(
+        self._adobe = self.__tk_premiere.AdobeBridge.get_or_create(
             identifier=self.instance_name,
             port=self._SHOTGUN_ADOBE_PORT,
             logger=self.logger,
@@ -163,11 +163,11 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         # in order to use frameworks, they have to be imported via
         # import_module. so they're exposed in the bundled python.
-        shotgun_data = self.__tk_aftereffects.shotgun_data
-        settings = self.__tk_aftereffects.shotgun_settings
+        shotgun_data = self.__tk_premiere.shotgun_data
+        settings = self.__tk_premiere.shotgun_settings
         # keep a handle for shotgun globals as they are needed in other
         # functions as well
-        self.__shotgun_globals = self.__tk_aftereffects.shotgun_globals
+        self.__shotgun_globals = self.__tk_premiere.shotgun_globals
 
         # import here since the engine is responsible for defining Qt.
         from sgtk.platform.qt import QtCore
@@ -235,9 +235,9 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         self.logger.debug("Destroying engine...")
 
         # Set our parent widget back to being owned by the window manager
-        # instead of After Effects's application window.
+        # instead of Premiere's application window.
         if self._PROXY_WIN_HWND and sys.platform == "win32":
-            self.__tk_aftereffects.win_32_api.SetParent(self._PROXY_WIN_HWND, 0)
+            self.__tk_premiere.win_32_api.SetParent(self._PROXY_WIN_HWND, 0)
 
         # No longer poll for new messages from this engine.
         if self._CHECK_CONNECTION_TIMER:
@@ -293,7 +293,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         """
         properties = properties or dict()
         properties["uid"] = self.__get_command_uid()
-        return super(AfterEffectsEngine, self).register_command(
+        return super(PremiereEngine, self).register_command(
             name,
             callback,
             properties,
@@ -305,23 +305,23 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         Returns information about the application hosting this engine.
 
         :returns: A {"name": application name, "version": application version}
-                  dictionary. eg: {"name": "AfterFX", "version": "2017.1.1"}
+                  dictionary. eg: {"name": "Premiere", "version": "2017.1.1"}
         """
         if not self.adobe:
             # Don't error out if the bridge was not yet started
-            return {"name": "AfterFX", "version": "unknown"}
+            return {"name": "Premiere", "version": "unknown"}
 
         version = self.adobe.app.version
-        # app.aftereffects.AfterEffectsVersion just returns 18.1.1 which is not what users see in the UI
+        # app.premiere.PremiereVersion just returns 18.1.1 which is not what users see in the UI
         # extract a more meaningful version from the systemInformation property
         # which gives something like:
-        # Adobe After Effects Version: 2017.1.1 20170425.r.252 2017/04/25:23:00:00 CL 1113967  x64\rNumber of .....
+        # Adobe Premiere Version: 2017.1.1 20170425.r.252 2017/04/25:23:00:00 CL 1113967  x64\rNumber of .....
         # and use it instead if available.
         m = re.search("([0-9]+[\.]?[0-9]*)", unicode(version))
         if m:
             cc_version = self.__CC_VERSION_MAPPING.get(math.floor(float(m.group(1))), version)
         return {
-            "name": "AfterFX",
+            "name": "Premiere",
             "version": cc_version,
         }
 
@@ -336,13 +336,9 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         :returns: The current project path or an empty string
         :rtype: str
         """
-        doc_obj = self.adobe.app.project.file
-        doc_path = ""
-        # doc_obj will always be a ProxyWrapper instance so we cannot
-        # use the `doc_obj is not None` comparison
-        if doc_obj != None:
-            doc_path = doc_obj.fsName
-        return doc_path
+        if self.adobe.app.project.path[0:4] == '\\\\?\\':
+            return self.adobe.app.project.path[4:]
+        return self.adobe.app.project.path
 
     def save(self, path=None):
         """
@@ -356,9 +352,9 @@ class AfterEffectsEngine(sgtk.platform.Engine):
             if path is None:
                 self.adobe.app.project.save()
             else:
-                # After Effects won't ensure that the folder is created when saving, so we must make sure it exists
+                # Premiere won't ensure that the folder is created when saving, so we must make sure it exists
                 ensure_folder_exists(os.path.dirname(path))
-                self.adobe.app.project.save(self.adobe.File(path))
+                self.adobe.app.project.saveAs(path)
             new_path = self.project_path
             self.logger.info("Saved file to to {!r}".format(new_path))
 
@@ -372,13 +368,13 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         doc_path = self.project_path
 
-        # After Effects doesn't appear to have a "save as" dialog accessible via
+        # Premiere doesn't appear to have a "save as" dialog accessible via
         # python. so open our own Qt file dialog.
         file_dialog = QtGui.QFileDialog(
             parent=self._get_dialog_parent(),
             caption="Save As",
             directory=doc_path,
-            filter="After Effects Documents (*.aep, *.aepx)"
+            filter="Premiere Documents (*.prproj)"
         )
         file_dialog.setLabelText(QtGui.QFileDialog.Accept, "Save")
         file_dialog.setLabelText(QtGui.QFileDialog.Reject, "Cancel")
@@ -395,12 +391,12 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     def AdobeItemTypes(self):
         """
         This returns a constant class that maps constants against
-        adobe aftereffects internal class names.
+        adobe premiere internal class names.
 
-        :returns: AdobeItemTypes constants object. see :class:`~python.tk_aftereffects.AdobeItemTypes`
+        :returns: AdobeItemTypes constants object. see :class:`~python.tk_premiere.AdobeItemTypes`
         :rtype: AdobeItemTypes
         """
-        afx_module = self.import_module("tk_aftereffects")
+        afx_module = self.import_module("tk_premiere")
         return afx_module.AdobeItemTypes
 
     def is_item_of_type(self, item, adobe_type):
@@ -409,7 +405,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         :param item: item to be checked.
         :type item: `adobe.ItemObject`_
-        :param str adobe_type: AdobeItemType-constant. One of the constants held by :class:`~python.tk_aftereffects.AdobeItemTypes`
+        :param str adobe_type: AdobeItemType-constant. One of the constants held by :class:`~python.tk_premiere.AdobeItemTypes`
         :returns: Indicating if the given item is of the given type
         :rtype: bool
         """
@@ -418,12 +414,13 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     @property
     def selected_item(self):
         """
-        Helper getting the currently selected item in the after effects project
+        Helper getting the currently selected item in the premiere project
 
         :returns: The active item
         :rtype: `adobe.ItemObject`_
         """
-        return self.adobe.app.project.activeItem
+        # v11.0 is broken and lacks of the getInsertionBin() method
+        return self.adobe.app.project.rootItem
 
     def is_adobe_sequence(self, path):
         """
@@ -452,7 +449,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         are actually existing.
 
         :param str path: filepath to check
-        :param queue_item: an after effects render queue item
+        :param queue_item: an premiere render queue item
         :type queue_item: `adobe.RenderQueueItemObject`_
         :returns: True if the path describes a sequence
         :rtype: bool
@@ -473,7 +470,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
             for item in engine.iter_collection(item_collection):
                 print item.name
 
-        :param collection_item: the after-effects collection item to iter
+        :param collection_item: the premiere collection item to iter
         :type collection_item: `adobe.ItemCollectionObject`_
         :yields: the next child item of the collection
         :rtype: `adobe.ItemObject`_
@@ -484,12 +481,12 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     def get_render_files(self, path, queue_item):
         """
         Yields all render-files and its frame number of a given
-        after effects render queue item.
+        premiere render queue item.
 
         The path is needed to uniquely identify the correct output_module
 
         :param str path: filepath to iter
-        :param queue_item: an after effects render queue item
+        :param queue_item: an premiere render queue item
         :type queue_item: `adobe.RenderQueueItemObject`_
         :yields: 2-item-tuple where the firstitem is the resolved path (str)
                 of the render file and the second item the frame-number or
@@ -530,7 +527,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         :returns: All new items that were imported
         :rtype: list-of-`adobe.CompItemObject`_
         """
-        file_obj = self.adobe.File(path)
+        file_obj = path
         import_options = self.adobe.ImportOptions()
         import_options.file = file_obj
         import_options.sequence = False
@@ -618,7 +615,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         try:
             self.adobe.app.project.renderQueue.render()
         except Exception as e:
-            # This catches errors thrown during the AfterEffects Render process.
+            # This catches errors thrown during the Premiere Render process.
             # Which may return various different errors. This situation never
             # occured during development.
             self.logger.error(
@@ -725,7 +722,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         # We also have a one-time check we need to make after the timer is
         # started. In the event that the user opened a document before the
         # integration completed its initialization, we need to make sure
-        # that the context is correct. Since we rely of After Effects sending
+        # that the context is correct. Since we rely of Premiere sending
         # an event on active document change to control our context, if that
         # occurred before we were listening then we likely missed it and
         # need to make sure we're not in a stale state.
@@ -822,7 +819,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         # This will be True if the context_changes_disabled context manager is
         # used. We're just in a temporary state of not allowing context changes,
-        # which is useful when an app is doing a lot of After Effects work that
+        # which is useful when an app is doing a lot of Premiere work that
         # might be triggering active document changes that we don't want to
         # result in SGTK context changes.
         with self.heartbeat_disabled():
@@ -938,7 +935,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
     def _run_tests(self):
         """
-        Runs the test suite for the tk-aftereffects bundle.
+        Runs the test suite for the tk-premiere bundle.
         """
         # If we don't know what the tests root directory path is
         # via the environment, then we shouldn't be here.
@@ -1008,7 +1005,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     def app_id(self):
         """
         The runtime app id. This will be a string -- something like
-        PHSP for After Effects, or AEFT for After Effect.
+        PHSP for Premiere, or AEFT for After Effect.
         """
         return self._SHOTGUN_ADOBE_APPID
 
@@ -1071,7 +1068,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         :returns: dict
         """
         # Just call the base implementation and monkey patch QMessageBox.
-        base = super(AfterEffectsEngine, self)._define_qt_base()
+        base = super(PremiereEngine, self)._define_qt_base()
         if not base:
             raise ImportError("Unable to find a QT Python module")
 
@@ -1092,7 +1089,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         Redefine the method calls for QMessageBox static methods.
 
         These are often called from within apps and because QT is running in a
-        separate process, they will pop up behind the After Effects window. Wrap
+        separate process, they will pop up behind the Premiere window. Wrap
         each of these calls in a raise method to activate the QT process.
 
         :param q_message_box: The QMessageBox class to patch.
@@ -1130,7 +1127,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
     def __check_for_popups(self):
         """
-        Method will check if a popup dialog from aftereffects was openend
+        Method will check if a popup dialog from premiere was openend
         and if so, it will raise the window to the front.
 
         NOTE:
@@ -1139,33 +1136,33 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         """
         if sys.platform == "win32":
 
-            # to get all dialogs from After Effects, we have to query the
-            # After Effects process id first. As this code runs inside a
+            # to get all dialogs from Premiere, we have to query the
+            # Premiere process id first. As this code runs inside a
             # separate python process, we use a subprocess for this.
             if self._AFX_PID == -1:
                 return
             elif self._AFX_PID is None:
                 # the windows tasklist command will provide the process id
-                # of the After Effects executable. As there is always only one
-                # instance of After Effects, this should be safe to determine the
+                # of the Premiere executable. As there is always only one
+                # instance of Premiere, this should be safe to determine the
                 # process id.
                 pid_query_process = subprocess.Popen(
-                    ['tasklist', '/FI', 'ImageName eq AfterFX.exe', '/FO', 'CSV', '/NH'],
+                    ['tasklist', '/FI', 'ImageName eq Premiere.exe', '/FO', 'CSV', '/NH'],
                     stdout=subprocess.PIPE
                 )
                 out_string, _ = pid_query_process.communicate()
 
                 # The out_string will look like:
                 # "AfterFX.ext","1234","SessionName","SessionNum","MemoryUsage"
-                # where 1234 describes the pid of After Effects
+                # where 1234 describes the pid of Premiere
                 match = re.match("[^0-9]+([0-9]+).*", out_string, re.DOTALL)
                 if not match:
                     self._AFX_PID = -1
                 self._AFX_PID = int(match.group(1))
 
-            # with the process id of After Effects, we can get all HWNDS that point to
+            # with the process id of Premiere, we can get all HWNDS that point to
             # dialog classes.
-            hwnds = self.__tk_aftereffects.win_32_api.find_windows(
+            hwnds = self.__tk_premiere.win_32_api.find_windows(
                                 process_id=self._AFX_PID,
                                 class_name=self._AFX_WIN32_DIALOG_WINDOW_CLASS,
                                 stop_if_found=True,
@@ -1179,7 +1176,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
             # we build a dict that maps the hwnd longs to the current hwnd pointer
             all_hwnds = {}
-            GetWindow = self.__tk_aftereffects.win_32_api.ctypes.windll.user32.GetWindow
+            GetWindow = self.__tk_premiere.win_32_api.ctypes.windll.user32.GetWindow
             for hwnd in hwnds:
                 # GetWindow with GW_CHILD is used to get the hwnd long that identifies the child window
                 # at the top of the Z order, of the specified parent window pointer.
@@ -1191,7 +1188,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
             # in case there is a new dialog, we bring it to front and update the cache
             for hwnd_long in new_hwnds:
-                self.__tk_aftereffects.win_32_api.bring_to_front(all_hwnds[hwnd_long])
+                self.__tk_premiere.win_32_api.bring_to_front(all_hwnds[hwnd_long])
                 self._POPUP_CACHE = set(all_hwnds.keys())
                 return
 
@@ -1203,16 +1200,16 @@ class AfterEffectsEngine(sgtk.platform.Engine):
             # In case there is no open dialog, we will reset the cache to None
             self._POPUP_CACHE = None
 
-    def _win32_get_aftereffects_main_hwnd(self):
+    def _win32_get_premiere_main_hwnd(self):
         """
-        Windows specific method to find the main After Effects window
+        Windows specific method to find the main Premiere window
         handle (HWND)
         """
         if not self._WIN32_AFTEREFFECTS_MAIN_HWND:
             for major in sorted(self.__CC_VERSION_MAPPING.keys()):
                 for minor in xrange(10):
-                    found_hwnds = self.__tk_aftereffects.win_32_api.find_windows(
-                        class_name="AE_CApplication_{}.{}".format(major, minor),
+                    found_hwnds = self.__tk_premiere.win_32_api.find_windows(
+                        class_name="Premiere Pro",
                         stop_if_found=True,
                     )
 
@@ -1225,13 +1222,13 @@ class AfterEffectsEngine(sgtk.platform.Engine):
     def _win32_get_proxy_window(self):
         """
         Windows-specific method to get the proxy window that will 'own' all
-        Toolkit dialogs.  This will be parented to the main After Effects
+        Toolkit dialogs.  This will be parented to the main Premiere
         application.
 
-        :returns: A QWidget that has been parented to After Effects's window.
+        :returns: A QWidget that has been parented to Premiere's window.
         """
-        # Get the main After Effects window:
-        ps_hwnd = self._win32_get_aftereffects_main_hwnd()
+        # Get the main Premiere window:
+        ps_hwnd = self._win32_get_premiere_main_hwnd()
         win32_proxy_win = None
         proxy_win_hwnd = None
 
@@ -1248,13 +1245,13 @@ class AfterEffectsEngine(sgtk.platform.Engine):
             # needed to turn a Qt5 WId into an HWND is not exposed in PySide2,
             # so we can't do what we did below for Qt4.
             if QtCore.__version__.startswith("4."):
-                proxy_win_hwnd = self.__tk_aftereffects.win_32_api.qwidget_winid_to_hwnd(
+                proxy_win_hwnd = self.__tk_premiere.win_32_api.qwidget_winid_to_hwnd(
                     win32_proxy_win.winId(),
                 )
             else:
                 # With PySide2, we're required to look up our proxy parent
                 # widget's HWND the hard way, following the same logic used
-                # to find After Effects's main window. To do that, we actually have
+                # to find Premiere's main window. To do that, we actually have
                 # to show our widget so that Windows knows about it. We can make
                 # it effectively invisible if we zero out its size, so we do that,
                 # show the widget, and then look up its HWND by window title before
@@ -1263,7 +1260,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
                 win32_proxy_win.show()
 
                 try:
-                    proxy_win_hwnd_found = self.__tk_aftereffects.win_32_api.find_windows(
+                    proxy_win_hwnd_found = self.__tk_premiere.win_32_api.find_windows(
                         stop_if_found=True,
                         class_name="Qt5QWindowIcon",
                         process_id=os.getpid(),
@@ -1275,35 +1272,35 @@ class AfterEffectsEngine(sgtk.platform.Engine):
                     proxy_win_hwnd = proxy_win_hwnd_found[0]
         else:
             self.logger.debug(
-                "Unable to determine the HWND of After Effects itself. This means "
+                "Unable to determine the HWND of Premiere itself. This means "
                 "that we can't properly setup window parenting for Toolkit apps."
             )
 
-        # Parent to the After Effects application window if we found everything
+        # Parent to the Premiere application window if we found everything
         # we needed. If we didn't find our proxy window for some reason, we
         # will return None below. In that case, we'll just end up with no
         # window parenting, but apps will still launch.
         if proxy_win_hwnd is None:
             self.logger.warning(
                 "Unable setup window parenting properly. Dialogs shown will "
-                "not be parented to After Effects, but they will still function "
+                "not be parented to Premiere, but they will still function "
                 "properly otherwise."
             )
         else:
             # Set the window style/flags. We don't need or want our Python
-            # dialogs to notify the After Effects application window when they're
+            # dialogs to notify the Premiere application window when they're
             # opened or closed, so we'll disable that behavior.
-            win_ex_style = self.__tk_aftereffects.win_32_api.GetWindowLong(
+            win_ex_style = self.__tk_premiere.win_32_api.GetWindowLong(
                 proxy_win_hwnd,
-                self.__tk_aftereffects.win_32_api.GWL_EXSTYLE,
+                self.__tk_premiere.win_32_api.GWL_EXSTYLE,
             )
 
-            self.__tk_aftereffects.win_32_api.SetWindowLong(
+            self.__tk_premiere.win_32_api.SetWindowLong(
                 proxy_win_hwnd,
-                self.__tk_aftereffects.win_32_api.GWL_EXSTYLE,
-                win_ex_style | self.__tk_aftereffects.win_32_api.WS_EX_NOPARENTNOTIFY,
+                self.__tk_premiere.win_32_api.GWL_EXSTYLE,
+                win_ex_style | self.__tk_premiere.win_32_api.WS_EX_NOPARENTNOTIFY,
             )
-            self.__tk_aftereffects.win_32_api.SetParent(proxy_win_hwnd, ps_hwnd)
+            self.__tk_premiere.win_32_api.SetParent(proxy_win_hwnd, ps_hwnd)
             self._PROXY_WIN_HWND = proxy_win_hwnd
 
         return win32_proxy_win
@@ -1366,7 +1363,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         # Note - the base engine implementation will try to clean up
         # dialogs and widgets after they've been closed.  However this
-        # can cause a crash in After Effects as the system may try to send
+        # can cause a crash in Premiere as the system may try to send
         # an event after the dialog has been deleted.
         # Keeping track of all dialogs will ensure this doesn't happen
         self.__qt_dialogs.append(dialog)
@@ -1375,7 +1372,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
         self.__activate_python()
 
         # make sure the window raised so it doesn't
-        # appear behind the main After Effects window
+        # appear behind the main Premiere window
         self.logger.debug("Showing dialog: %s" % (title,))
         dialog.show()
         dialog.raise_()
@@ -1416,7 +1413,7 @@ class AfterEffectsEngine(sgtk.platform.Engine):
 
         # Note - the base engine implementation will try to clean up
         # dialogs and widgets after they've been closed.  However this
-        # can cause a crash in After Effects as the system may try to send
+        # can cause a crash in Premiere as the system may try to send
         # an event after the dialog has been deleted.
         # Keeping track of all dialogs will ensure this doesn't happen
         self.__qt_dialogs.append(dialog)

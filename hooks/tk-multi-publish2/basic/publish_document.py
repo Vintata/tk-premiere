@@ -20,9 +20,9 @@ class ProjectUnsavedError(Exception):
     pass
 
 
-class AfterEffectsProjectPublishPlugin(HookBaseClass):
+class PremiereProjectPublishPlugin(HookBaseClass):
     """
-    Plugin for publishing an after effects project.
+    Plugin for publishing an premiere project.
 
     This hook relies on functionality found in the base file publisher hook in
     the publish2 app and should inherit from it in the configuration. The hook
@@ -105,10 +105,10 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
 
         # inherit the settings from the base publish plugin
         base_settings = \
-            super(AfterEffectsProjectPublishPlugin, self).settings or {}
+            super(PremiereProjectPublishPlugin, self).settings or {}
 
         # settings specific to this class
-        aftereffects_publish_settings = {
+        premiere_publish_settings = {
             "Publish Template": {
                 "type": "template",
                 "default": None,
@@ -119,7 +119,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
         }
 
         # update the base settings
-        base_settings.update(aftereffects_publish_settings)
+        base_settings.update(premiere_publish_settings)
 
         return base_settings
 
@@ -132,7 +132,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
         accept() method. Strings can contain glob patters such as *, for example
         ["maya.*", "file.maya"]
         """
-        return ["aftereffects.project"]
+        return ["premiere.project"]
 
     def accept(self, settings, item):
         """
@@ -170,12 +170,12 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
             # provide a save button. the project will need to be saved before
             # validation will succeed.
             self.logger.warn(
-                "The After Effects project has not been saved.",
+                "The Premiere project has not been saved.",
                 extra=self.__get_save_as_action()
             )
 
         self.logger.info(
-            "After Effects '%s' plugin accepted." %
+            "Premiere '%s' plugin accepted." %
             (self.name,)
         )
         return {
@@ -204,7 +204,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
         if not path:
             # the project still requires saving. provide a save button.
             # validation fails.
-            error_msg = "The After Effects project '%s' has not been saved." % \
+            error_msg = "The Premiere project '%s' has not been saved." % \
                         (item.name,)
             self.logger.error(
                 error_msg,
@@ -231,7 +231,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
                     extra={
                         "action_button": {
                             "label": "Save File",
-                            "tooltip": "Save the current After Effects project"
+                            "tooltip": "Save the current Premiere project"
                                        "to a different file name",
                             # will launch wf2 if configured
                             "callback": self.__get_save_as_action()
@@ -289,7 +289,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
         item.properties["path"] = path
 
         # run the base class validation
-        return super(AfterEffectsProjectPublishPlugin, self).validate(
+        return super(PremiereProjectPublishPlugin, self).validate(
             settings, item)
 
     def publish(self, settings, item):
@@ -312,10 +312,10 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
 
         # update the item with the saved project path
         item.properties["path"] = path
-        item.properties["publish_type"] = "After Effects Project"
+        item.properties["publish_type"] = "Premiere Project"
 
         # let the base class register the publish
-        super(AfterEffectsProjectPublishPlugin, self).publish(settings, item)
+        super(PremiereProjectPublishPlugin, self).publish(settings, item)
 
         published_renderings = item.properties.get("published_renderings", [])
         published_renderings.insert(0, item.properties.get("sg_publish_data"))
@@ -332,7 +332,7 @@ class AfterEffectsProjectPublishPlugin(HookBaseClass):
         """
 
         # do the base class finalization
-        super(AfterEffectsProjectPublishPlugin, self).finalize(settings, item)
+        super(PremiereProjectPublishPlugin, self).finalize(settings, item)
 
         path = item.properties["path"]
 

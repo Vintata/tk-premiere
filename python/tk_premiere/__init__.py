@@ -40,18 +40,10 @@ if sys.platform == "win32":
 class AdobeItemTypes:
     """
     This class stores some constants in order to expose certain important
-    adobe aftereffects internal class names within python
+    adobe premiere internal class names within python
     """
-
-    #: :obj:`str`
-    #: The adobe.CompItem's internal typename
-    COMP_ITEM = "CompItem"
-
-    #: :obj:`str`
-    #: The adobe.FolderItem's internal typename
-    FOLDER_ITEM = "FolderItem"
-
-    #: :obj:`str`
-    #: The adobe.FootageItem's internal typename
-    FOOTAGE_ITEM = "FootageItem"
+    CLIP_ITEM = "CLIP"
+    BIN_ITEM = "BIN"
+    ROOT_ITEM = "ROOT"
+    FILE_ITEM = "FILE"
 

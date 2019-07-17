@@ -26,7 +26,7 @@ configuration:
           with keys 'app_instance' and 'name'. The 'app_instance' key connects
           this entry to a particular app instance defined in the environment
           configuration file. The 'name' is a command name to make a favorite.
-        allows_empty: True
+        allows_empty: true
         default_value: []
         values:
             type: dict
@@ -50,15 +50,15 @@ configuration:
     debug_logging:
         type: bool
         description: Controls whether debug messages should be emitted to the logger
-        default_value: false
+        default_value: true
 
 
 # the Shotgun fields that this engine needs in order to operate correctly
 requires_shotgun_fields:
 
 # More verbose description of this item
-display_name: "Shotgun Engine for After Effects CC"
-description: "Shotgun Integration for After Effects CC"
+display_name: "Shotgun Engine for Premiere CC"
+description: "Shotgun Integration for Premiere CC"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
