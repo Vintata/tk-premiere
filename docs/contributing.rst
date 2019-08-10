@@ -29,22 +29,6 @@ As item is always a ProxyWrapper-instance. If you want to know if the item is un
     if item == None:
         ...
 
-
-After Effects ItemCollection-Objects have no index 0 (zero)
-...........................................................
-
-All ItemCollections in After Effects have a start-index of 1 (one). If you want to iter through such a collection please use the engines `iter_collection` method::
-
-    collection = engine.adobe.app.project.items
-    for item in engine.iter_collection(collection):
-        ...
-
-Note, that Arrays in After Effects have a start-index of 0 (zero), so for those you may use the normal for loop in python::
-
-    adobeArray = engine.adobe.Array(1,2,3)
-    for item in adobeArray:
-        ...
-
 Debugging
 ---------
 

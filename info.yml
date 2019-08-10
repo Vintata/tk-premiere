@@ -66,4 +66,4 @@ requires_core_version: "v0.18.164"
 
 frameworks:
   - {"name": "tk-framework-shotgunutils", "version": "v5.x.x"}
-  - {"name": "tk-framework-adobe-ppro", "version": "v1.x.x"}
+  - {"name": "tk-framework-adobe", "version": "v1.x.x"}

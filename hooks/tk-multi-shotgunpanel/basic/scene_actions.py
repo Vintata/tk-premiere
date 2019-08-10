@@ -162,6 +162,7 @@ class PremiereActions(HookBaseClass):
         """
         Helper method to add the footage described by path to a comp
         """
-        self.parent.engine.adobe.rpc_eval(
-                "app.project.importFiles(['%s'], 0, app.project.rootItem, %d);"
-                % (path.replace(os.path.sep, '/'), is_sequence))
+        project = self.parent.engine.adobe.app.project
+        insertion_bin = project.getInsertionBin()
+        paths = [path.replace(os.path.sep, '/')]
+        project.importFiles(paths, 0, insertion_bin, is_sequence)

@@ -36,14 +36,3 @@ if sys.platform == "win32":
         "tk_framework_adobe_utils.win_32_api"
     )
 
-
-class AdobeItemTypes:
-    """
-    This class stores some constants in order to expose certain important
-    adobe premiere internal class names within python
-    """
-    CLIP_ITEM = "CLIP"
-    BIN_ITEM = "BIN"
-    ROOT_ITEM = "ROOT"
-    FILE_ITEM = "FILE"
-
