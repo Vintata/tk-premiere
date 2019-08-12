@@ -196,7 +196,6 @@ class PremiereProjectPublishPlugin(HookBaseClass):
 
         :returns: True if item is valid, False otherwise.
         """
-
         path = self.parent.engine.project_path
 
         # ---- ensure the project has been saved

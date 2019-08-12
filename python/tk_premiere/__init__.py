@@ -11,6 +11,8 @@
 import sys
 import sgtk
 
+from .session_info import SessionInfo
+
 
 adobe_bridge = sgtk.platform.import_framework(
     "tk-framework-adobe",

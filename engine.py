@@ -1731,4 +1731,4 @@ class PremiereEngine(sgtk.platform.Engine):
                 self.logger.error("Could not activate python.")
         elif sys.platform == "win32":
             pass
-
+            
