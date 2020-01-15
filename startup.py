@@ -73,6 +73,9 @@ class PremiereLauncher(SoftwareLauncher):
         std_env = self.get_standard_plugin_environment()
         required_env.update(std_env)
 
+        # override with default project file
+        args = os.path.join(self.disk_location, "resources", "Untitled.prproj")
+
         return LaunchInformation(exec_path, args, required_env)
 
     def scan_software(self):

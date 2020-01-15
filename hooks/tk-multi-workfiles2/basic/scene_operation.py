@@ -7,10 +7,32 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import os
 import sgtk
 
 
 HookClass = sgtk.get_hook_baseclass()
+
+
+def get_default_premiere_project(shotgun):
+
+    filters = [
+                ['entity', 'is', {'type': 'CustomEntity02', 'id': 50}],
+                ['published_file_type', 'is', {'type': 'PublishedFileType', 'id':208}]
+            ]
+
+    order = [{'field_name': 'version_number', 'direction':'desc'}]
+
+    fields = ['name', 'path', 'version_number', 'task', 'sg_status_list', 'task.Task.step', 'published_file_type']
+
+    try:
+        data = shotgun.find('PublishedFile', filters=filters, fields=fields, order=order, limit=1)
+        if data:
+            return data[0]['path']['local_path']
+    except:
+        pass
+
+    return None
 
 
 class SceneOperation(HookClass):
@@ -53,7 +75,9 @@ class SceneOperation(HookClass):
                                                  state, otherwise False
                                 all others     - None
         """
-        adobe = self.parent.engine.adobe
+        engine = self.parent.engine
+        adobe = engine.adobe
+        logger = engine.logger
 
         if operation == "current_path":
             return adobe.app.project.path
@@ -72,6 +96,13 @@ class SceneOperation(HookClass):
             return True
 
         elif operation == "prepare_new":
-            # adobe.app.newProject()
-            pass
+            # premiere seems to have no NewDocument(), so close/open is used instead.
 
+            # a shotgun project can have its own default *.prproj file
+            shotgun = engine.context.tank.shotgun
+            prproj = get_default_premiere_project(shotgun)
+            if prproj is None:
+                # fallback to predefined project file
+                prproj = os.path.join(engine.disk_location, "resources", "Untitled.prproj")
+
+            adobe.app.openDocument(prproj)
