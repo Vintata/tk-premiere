@@ -665,9 +665,9 @@ class PremiereEngine(sgtk.platform.Engine):
             if uid == self.__jump_to_fs_command_id:
                 # jump to fs special command triggered
                 self._jump_to_fs()
-            elif uid == self.__jump_to_sg_command_id:
+            # elif uid == self.__jump_to_sg_command_id:
                 # jump to sg special command triggered
-                self._jump_to_sg()
+                # self._jump_to_sg()
             else:
                 # a registered command was triggered
                 for command in self.commands.values():
@@ -1358,15 +1358,15 @@ class PremiereEngine(sgtk.platform.Engine):
             "shotgun_logo.png"
         )
 
-        jump_commands.append(
-            dict(
-                uid=self.__jump_to_sg_command_id,
-                display_name="Jump to Shotgun",
-                icon_path=sg_icon,
-                description="Open the current context in a web browser.",
-                type="context_menu",
-            )
-        )
+        # jump_commands.append(
+        #     dict(
+        #         uid=self.__jump_to_sg_command_id,
+        #         display_name="Jump to Shotgun",
+        #         icon_path=sg_icon,
+        #         description="Open the current context in a web browser.",
+        #         type="context_menu",
+        #     )
+        # )
 
         if self.context.filesystem_locations:
 
@@ -1453,13 +1453,13 @@ class PremiereEngine(sgtk.platform.Engine):
             self._CHECK_CONNECTION_TIMER = timer
             self.log_debug("Connection timer created and started.")
 
-    def _jump_to_sg(self):
-        """
-        Jump to shotgun, launch web browser
-        """
-        from sgtk.platform.qt import QtGui, QtCore
-        url = self.context.shotgun_url
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+#    def _jump_to_sg(self):
+#        """
+#        Jump to shotgun, launch web browser
+#        """
+#        from sgtk.platform.qt import QtGui, QtCore
+#        url = self.context.shotgun_url
+#         QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
 
     def _jump_to_fs(self):
         """
