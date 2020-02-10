@@ -19,9 +19,14 @@ class SessionInfo(object):
         return items
 
     def __get_track_items(self, track_items, timebase):
+        import sgtk
+        engine = sgtk.platform.current_engine()
         items = list()
         for i in track_items:
+            filter_ = [['code', 'is', i.name], ['sg_sequence','is', engine.context.entity]]
+            exists = engine.shotgun.find('Shot', filter_, ['sg_cut_in', 'sg_cut_out', 'sg_cut_order'])
             item = dict(
+                shot_exists = exists,
                 name=i.name,
                 duration=i.duration.ticks/timebase,
                 start=i.start.ticks/timebase,
