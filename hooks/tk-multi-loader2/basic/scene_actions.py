@@ -118,6 +118,9 @@ class PremiereActions(HookBaseClass):
             sg_publish_data = single_action["sg_publish_data"]
             params = single_action["params"]
             self.execute_action(name, params, sg_publish_data)
+    
+    def _get_path_from_sg_publish_data(self, sg_publish_data):
+        return self.get_publish_path(sg_publish_data).decode('utf-8')
 
     def execute_action(self, name, params, sg_publish_data):
         """
@@ -137,7 +140,7 @@ class PremiereActions(HookBaseClass):
         # resolve path
         # toolkit uses utf-8 encoded strings internally and the Premiere API expects unicode
         # so convert the path to ensure filenames containing complex characters are supported
-        path = self.get_publish_path(sg_publish_data).decode('utf-8')
+        path = self._get_path_from_sg_publish_data(sg_publish_data)
         is_sequence = 0
 
         if self.parent.engine.is_adobe_sequence(path):

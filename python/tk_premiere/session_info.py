@@ -22,11 +22,25 @@ class SessionInfo(object):
         import sgtk
         engine = sgtk.platform.current_engine()
         items = list()
+
+        selection_active = [x.isSelected() for x in track_items if x.isSelected()]
+        print '#################', selection_active
+
         for i in track_items:
-            filter_ = [['code', 'is', i.name], ['sg_sequence','is', engine.context.entity]]
-            exists = engine.shotgun.find('Shot', filter_, ['sg_cut_in', 'sg_cut_out', 'sg_cut_order'])
+            clip_name = i.name
+            source_video = i.projectItem.name
+            # source_video = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
+            
+            # check if the clip name is a shotgun shot
+            filter_ = [['code', 'is', clip_name], ['sg_sequence','is', engine.context.entity]]
+            shot_exists = engine.shotgun.find('Shot', filter_, ['sg_cut_in', 'sg_cut_out', 'sg_cut_order', 'sg_cut_duration'])
+            
+            # get shotgun detail for the clip source video (it has to be for sure and Version Entity)
+            filter_ = [['code', 'is', source_video], ['project','is', engine.context.project]]
+            version = engine.shotgun.find('Version', filter_, ['code','sg_first_frame', 'sg_last_frame', 'entity'])
+            
             item = dict(
-                shot_exists = exists,
+                shot_exists = shot_exists,
                 name=i.name,
                 duration=i.duration.ticks/timebase,
                 start=i.start.ticks/timebase,
@@ -34,10 +48,18 @@ class SessionInfo(object):
                 inPoint=i.inPoint.ticks/timebase,
                 outPoint=i.outPoint.ticks/timebase,
                 mediaType=i.mediaType,
+                version=version,
+                # components = i.components,
+                isSelected = i.isSelected(),
                 speed=i.getSpeed(),
                 isAdjustmentLayer=i.isAdjustmentLayer()
             )
-            items.append(item)
+
+            if selection_active and i.isSelected():
+                items.append(item)
+            elif not selection_active :
+                items.append(item)
+
         return items
 
     def __get_tracks(self, sequence_tracks, timebase):
