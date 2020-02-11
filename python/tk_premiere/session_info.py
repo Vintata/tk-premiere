@@ -25,8 +25,8 @@ class SessionInfo(object):
 
         for i in track_items:
             clip_name = i.name
-            # source_video = i.projectItem.name
-            source_video = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
+            source_video = i.projectItem.name
+            # source_video = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
             
             # check if the clip name is a shotgun shot
             filter_ = [['code', 'is', clip_name], ['sg_sequence','is', engine.context.entity]]
