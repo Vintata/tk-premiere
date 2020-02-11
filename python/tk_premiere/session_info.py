@@ -23,13 +23,10 @@ class SessionInfo(object):
         engine = sgtk.platform.current_engine()
         items = list()
 
-        selection_active = [x.isSelected() for x in track_items if x.isSelected()]
-        print '#################', selection_active
-
         for i in track_items:
             clip_name = i.name
-            source_video = i.projectItem.name
-            # source_video = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
+            # source_video = i.projectItem.name
+            source_video = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
             
             # check if the clip name is a shotgun shot
             filter_ = [['code', 'is', clip_name], ['sg_sequence','is', engine.context.entity]]
@@ -55,10 +52,7 @@ class SessionInfo(object):
                 isAdjustmentLayer=i.isAdjustmentLayer()
             )
 
-            if selection_active and i.isSelected():
-                items.append(item)
-            elif not selection_active :
-                items.append(item)
+            items.append(item)
 
         return items
 
