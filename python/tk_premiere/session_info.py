@@ -34,8 +34,9 @@ class SessionInfo(object):
             
             # get shotgun detail for the clip source video (it has to be for sure and Version Entity)
             filter_ = [['code', 'is', source_video], ['project','is', engine.context.project]]
-            version = engine.shotgun.find('Version', filter_, ['code','sg_first_frame', 'sg_last_frame', 'entity'])
-            
+            # version = engine.shotgun.find('Version', filter_, ['code','sg_first_frame', 'sg_last_frame', 'entity'])
+            version = engine.shotgun.find('PublishedFile', filter_, ['code','sg_cut_in', 'sg_cut_out', 'entity'])
+
             item = dict(
                 shot_exists = shot_exists,
                 name=i.name,
