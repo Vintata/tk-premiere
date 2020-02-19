@@ -32,18 +32,18 @@ class SessionInfo(object):
             # videoComponents = i.projectItem.videoComponents
             # sym_link = i.projectItem.name.replace('.mov', '.rv') if '.mov' in i.projectItem.name else i.projectItem.name
             
-            # check if the clip name is a shotgun shot
-            filter_ = [['code', 'is', clip_name], ['sg_sequence','is', engine.context.entity]]
-            shot_exists = engine.shotgun.find('Shot', filter_, ['sg_cut_in', 'sg_cut_out', 'sg_cut_order', 'sg_cut_duration'])
+            # # check if the clip name is a shotgun shot
+            # filter_ = [['code', 'is', clip_name], ['sg_sequence','is', engine.context.entity]]
+            # shot_exists = engine.shotgun.find('Shot', filter_, ['sg_cut_in', 'sg_cut_out', 'sg_cut_order', 'sg_cut_duration'])
             
-            # the clip video source it the publishedfile "symlink" for adobe
+            # # the clip video source it the publishedfile "symlink" for adobe
             
-            folder_name = os.path.basename(os.path.dirname(getMediaPath_clip))
-            sym_link = i.projectItem.name if folder_name == 'publish' else folder_name
-            filter_ = [['code', 'is', sym_link], ['project','is', engine.context.project]]
-            # version = engine.shotgun.find('Version', filter_, ['code','sg_first_frame', 'sg_last_frame', 'entity'])
-            # version = engine.shotgun.find('PublishedFile', filter_, ['code','sg_cut_in', 'sg_cut_out', 'entity'])
-            sym_link_entity = engine.shotgun.find('PublishedFile', filter_, ['code','sg_versions', 'entity', 'published_file_type'])
+            # folder_name = os.path.basename(os.path.dirname(getMediaPath_clip))
+            # sym_link = i.projectItem.name if folder_name == 'publish' else folder_name
+            # filter_ = [['code', 'is', sym_link], ['project','is', engine.context.project]]
+            # # version = engine.shotgun.find('Version', filter_, ['code','sg_first_frame', 'sg_last_frame', 'entity'])
+            # # version = engine.shotgun.find('PublishedFile', filter_, ['code','sg_cut_in', 'sg_cut_out', 'entity'])
+            # sym_link_entity = engine.shotgun.find('PublishedFile', filter_, ['code','sg_versions', 'entity', 'published_file_type'])
 
             # somethime could be that the symlink published is not a .mov but it's a folder published
             # if not sym_link_entity :
@@ -52,7 +52,7 @@ class SessionInfo(object):
 
 
             item = dict(
-                shot_exists = shot_exists,
+                # shot_exists = shot_exists,
                 name=i.name,
                 duration=i.duration.ticks/timebase,
                 start=i.start.ticks/timebase,
@@ -60,7 +60,7 @@ class SessionInfo(object):
                 inPoint=i.inPoint.ticks/timebase,
                 outPoint=i.outPoint.ticks/timebase,
                 mediaType=i.mediaType,
-                sym_link_entity=sym_link_entity,
+                # sym_link_entity=sym_link_entity,
                 source_path_clip=getMediaPath_clip,
                 # canChangeMediaPath = canChangeMediaPath,
                 # videoComponents=videoComponents,
