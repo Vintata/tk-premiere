@@ -19,9 +19,9 @@ class SessionInfo(object):
         return items
 
     def __get_track_items(self, track_items, timebase):
-        import sgtk
-        import os
-        engine = sgtk.platform.current_engine()
+        # import sgtk
+        # import os
+        # engine = sgtk.platform.current_engine()
         items = list()
 
         for i in track_items:
